@@ -3,7 +3,8 @@ title: "Reproducible Research - Peer Assessment 1"
 output: html_document
 ---
 
-```{r loadproc, echo=TRUE}
+
+```r
 ## Load the following libraries
 library(plyr)
 library(lattice)
@@ -25,30 +26,45 @@ naData$steps <- as.numeric(naData$steps)
 # What is mean total number of steps taken per day?
 
 
-```{r totalsteps, echo=TRUE}
+
+```r
 ## Sum up total steps for each day using aggregate
 stepsDay <- aggregate(steps ~ date, naData, sum)
 
 #Make the histogram.
 hist(stepsDay$steps, main="Total number of steps taken per day", xlab="Steps per day", col="blue")
-
 ```
 
+![plot of chunk totalsteps](figure/totalsteps-1.png) 
 
-```{r meanmedian, echo=TRUE}
+
+
+```r
 ## Calculate the mean and median
 meanSteps <- mean(stepsDay$step)
 medianSteps <- median(stepsDay$step)
 meanSteps
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 medianSteps
 ```
 
-The mean of total number of steps taken per day: `r format(round(meanSteps, 2))`.  The median of total number of steps taken per day: `r format(round(medianSteps, 2))`.
+```
+## [1] 10765
+```
+
+The mean of total number of steps taken per day: 10766.19.  The median of total number of steps taken per day: 10765.
 
 
 # What is the average daily activity pattern?
 
-```{r uniqueinterval, echo=TRUE}
+
+```r
 ## Calculate the average daily activity pattern
 uniqueInterval <- unique(naData$interval)
 avgStep <- tapply(naData$steps, naData$interval, mean)
@@ -57,7 +73,10 @@ avgStep <- tapply(naData$steps, naData$interval, mean)
 plot(uniqueInterval, avgStep, type="l", ylab="Average Steps", xlab="5-minute Interval", main="Average Daily Activity Pattern")
 ```
 
-```{r 5min, echo=TRUE}
+![plot of chunk uniqueinterval](figure/uniqueinterval-1.png) 
+
+
+```r
 ## maximum number of steps in 5-min interval
 
 # Imputing missing values
@@ -65,20 +84,30 @@ maxSteps <- names(which.max(avgStep))
 maxSteps
 ```
 
-The maximum number of steps in 5-minute interval: `r maxSteps`.
+```
+## [1] "835"
+```
+
+The maximum number of steps in 5-minute interval: 835.
 
 
 # Inputing missing values
 
-```{r missingValues, echo=TRUE}
+
+```r
 ## Subtract the number of rolls from raw data to NA removed data
 misVal <- nrow(actData) - nrow(naData)
 misVal
 ```
 
-The total number of missing values in the dataset: `r misVal`.
+```
+## [1] 2304
+```
 
-```{r Populatena, echo=TRUE}
+The total number of missing values in the dataset: 2304.
+
+
+```r
 ## Generate logical NA and look for NA in the original dataset and
 ## replace NA with the mean of 5-min interval
 isna <- is.na(actData)
@@ -86,25 +115,41 @@ dupData <- actData
 dupData$steps[which(isna)] <- avgStep[match(actData$interval[which(isna)], actData$interval)]
 ```
 
-```{r newhistogram, echo=TRUE}
+
+```r
 ## Generate a new histogram based on the NA populated data
 popSteps <- aggregate(steps ~ date, dupData, sum)
 hist(popSteps$steps, main="Total number of steps taken per day", xlab="Steps per day", col="blue")
 ```
 
-```{r newmeanmedian, echo=TRUE}
+![plot of chunk newhistogram](figure/newhistogram-1.png) 
+
+
+```r
 ## Calculate the mean and median
 pmeanSteps <- mean(popSteps$step)
 pmedianSteps <- median(popSteps$step)
 pmeanSteps
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 pmedianSteps
 ```
 
-The mean of total number of steps taken per day: `r format(round(pmeanSteps, 2))`.  The median of total number of steps taken per day: `r format(round(pmedianSteps, 2))`.  The two values are idential and doesn't seem to be impacted by replacing NA value with average value of the same interval.  
+```
+## [1] 10766.19
+```
+
+The mean of total number of steps taken per day: 10766.19.  The median of total number of steps taken per day: 10766.19.  The two values are idential and doesn't seem to be impacted by replacing NA value with average value of the same interval.  
 
 # Are there differences in activity patterns between weekdays and weekends?
 
-```{r weekdayend, echo=TRUE}
+
+```r
 ## Create a factor variable in the dataset with two levels - "weekday" and "weekend"
 
 day <- dupData$date
@@ -120,14 +165,15 @@ dupData$day <- gsub("Friday", "Weekday", dupData$day)
 dupData$day <- gsub("Saturday", "Weekend", dupData$day)
 dupData$day <- gsub("Sunday", "Weekend", dupData$day)
 dupData$day <- as.factor(dupData$day)
-
 ```
 
-```{r plotline, echo=TRUE}
+
+```r
 ## Make a line plot containing a time series of the 5-min interval
 
 newavgStep <- ddply(dupData, .(interval, day), summarize, steps = mean(steps))
 
 xyplot(steps ~ interval | day, data=newavgStep, type="l", layout=c(1,2), xlab="Interval", main="Avg Steps by day Weekend/Weekday", ylab="Steps")
-
 ```
+
+![plot of chunk plotline](figure/plotline-1.png) 
